@@ -1,0 +1,19 @@
+services:
+  linux-workstation-bootstrap-docs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: linux-workstation-bootstrap-docs
+    restart: unless-stopped
+    networks:
+      - caddy_net
+    labels:
+      caddy: linux-workstation-bootstrap.reposito.rio.br
+      caddy.reverse_proxy: "{{upstreams 3012}}"
+      caddy.encode: "gzip"
+    expose:
+      - 3012
+
+networks:
+  caddy_net:
+    external: true
