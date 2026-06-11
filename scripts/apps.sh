@@ -7,7 +7,7 @@ install_design_apps() {
   case $PKG_MANAGER in
     apt)
       $ADD_REPO_CMD ppa:obsproject/obs-studio
-      $UPDATE_CMD
+      update_package_lists
       install_packages "${common_design[@]}" ttf-mscorefonts-installer
       ;;
     dnf)
@@ -32,7 +32,7 @@ install_docker() {
       sudo mkdir -p /etc/apt/keyrings
       curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg --yes
       echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
-      $UPDATE_CMD
+      update_package_lists
       install_packages "${docker_pkgs_main[@]}"
       ;;
     dnf)
@@ -57,7 +57,7 @@ install_dbeaver() {
       wget -O /tmp/dbeaver.gpg.key https://dbeaver.io/debs/dbeaver.gpg.key
       sudo mv /tmp/dbeaver.gpg.key /usr/share/keyrings/dbeaver.gpg.key
       echo "deb [signed-by=/usr/share/keyrings/dbeaver.gpg.key] https://dbeaver.io/debs/dbeaver-ce /" | sudo tee /etc/apt/sources.list.d/dbeaver.list
-      $UPDATE_CMD
+      update_package_lists
       install_packages dbeaver-ce
       ;;
     dnf)
@@ -144,7 +144,7 @@ install_insomnia() {
 
   case $PKG_MANAGER in
     apt)
-      curl -1sLf 'https://packages.konghq.com/public/insomnia/setup.deb.sh' | sudo -E distro=ubuntu codename=focal bash
+      curl -1sLf 'https://packages.konghq.com/public/insomnia/setup.deb.sh' | sudo -E bash
       install_packages insomnia
       ;;
     dnf)
