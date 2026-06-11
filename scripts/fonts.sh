@@ -15,7 +15,7 @@ install_nerd_fonts() {
     "Iosevka"
   )
 
-  local version="v3.2.1"
+  local version="v3.4.0"
   local base_url="https://github.com/ryanoasis/nerd-fonts/releases/download/$version"
 
   for font in "${fonts[@]}"; do
@@ -61,5 +61,5 @@ run_fonts_setup() {
   install_nerd_fonts
   install_monaspace
   log_info "Updating font cache..."
-  sudo fc-cache -f -v
+  fc-cache -f
 }

@@ -13,8 +13,6 @@ dconf write /org/gnome/terminal/legacy/profiles:/:$PROFILE_SLUG/cursor-blink-mod
 dconf write /org/gnome/terminal/legacy/profiles:/:$PROFILE_SLUG/scrollback-lines 50000
 dconf write /org/gnome/terminal/legacy/profiles:/:$PROFILE_SLUG/use-custom-command false
 
-dconf write /org/gnome/terminal/legacy/profiles:/:$PROFILE_SLUG/background-transparency-percent 20
-
 EXISTING_PROFILES=$(dconf read /org/gnome/terminal/legacy/profiles:/list)
 
 if [[ -z $EXISTING_PROFILES || "$EXISTING_PROFILES" == "@as []" ]]; then
@@ -27,6 +25,9 @@ fi
 dconf write /org/gnome/terminal/legacy/profiles:/default "'$PROFILE_SLUG'"
 
 mkdir -p ~/.config/gtk-3.0/
-echo "VteTerminal, vte-terminal { padding: 20px; }" >>~/.config/gtk-3.0/gtk.css
+
+if ! grep -q "VteTerminal, vte-terminal" ~/.config/gtk-3.0/gtk.css 2>/dev/null; then
+  echo "VteTerminal, vte-terminal { padding: 20px; }" >>~/.config/gtk-3.0/gtk.css
+fi
 
 echo "✅ Profile '$PROFILE_NAME' to GNOME Terminal successfully configured!"

@@ -13,27 +13,31 @@ detect_package_manager() {
   if command -v apt-get &>/dev/null; then
     PKG_MANAGER="apt"
     SUDO_CMD="sudo"
-    UPDATE_CMD="$SUDO_CMD apt update -y"
-    UPGRADE_CMD="$SUDO_CMD apt upgrade -y"
     INSTALL_CMD="$SUDO_CMD apt install -y"
     ADD_REPO_CMD="$SUDO_CMD add-apt-repository -y"
   elif command -v dnf &>/dev/null; then
     PKG_MANAGER="dnf"
     SUDO_CMD="sudo"
-    UPDATE_CMD="$SUDO_CMD dnf check-update || true"
-    UPGRADE_CMD="$SUDO_CMD dnf upgrade -y"
     INSTALL_CMD="$SUDO_CMD dnf install -y"
   elif command -v pacman &>/dev/null; then
     PKG_MANAGER="pacman"
     SUDO_CMD="sudo"
-    UPDATE_CMD="$SUDO_CMD pacman -Syu --noconfirm"
-    UPGRADE_CMD=""
     INSTALL_CMD="$SUDO_CMD pacman -S --noconfirm --needed"
   else
     log_error "Package manager not supported."
   fi
 
-  export PKG_MANAGER SUDO_CMD UPDATE_CMD UPGRADE_CMD INSTALL_CMD ADD_REPO_CMD
+  export PKG_MANAGER SUDO_CMD INSTALL_CMD ADD_REPO_CMD
+}
+
+update_package_lists() {
+  log_info "Updating package lists..."
+
+  case $PKG_MANAGER in
+    apt) $SUDO_CMD apt update -y ;;
+    dnf) $SUDO_CMD dnf check-update || true ;;
+    pacman) $SUDO_CMD pacman -Syu --noconfirm ;;
+  esac
 }
 
 install_packages() {

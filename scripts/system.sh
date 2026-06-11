@@ -13,8 +13,7 @@ setup_directories() {
     "$HOME/.config/darktable" \
     "$HOME/.config/zellij" \
     "$HOME/.config/alacritty" \
-    "$HOME/.config/starship" \
-    "$HOME/.config/konsolerc"
+    "$HOME/.config/starship"
 }
 
 install_essentials() {

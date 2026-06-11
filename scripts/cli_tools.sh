@@ -1,6 +1,11 @@
 #!/bin/bash
 
 install_starship() {
+  if command -v starship &>/dev/null; then
+    log_info "Starship is already installed. Skipping."
+    return
+  fi
+
   log_info "Installing Starship..."
 
   if [ "$PKG_MANAGER" == "pacman" ]; then
@@ -11,6 +16,11 @@ install_starship() {
 }
 
 install_nitch() {
+  if command -v nitch &>/dev/null; then
+    log_info "Nitch is already installed. Skipping."
+    return
+  fi
+
   log_info "Installing Nitch..."
 
   if [ "$PKG_MANAGER" == "pacman" ]; then
@@ -24,6 +34,11 @@ install_nitch() {
 }
 
 install_atuin() {
+  if command -v atuin &>/dev/null; then
+    log_info "Atuin is already installed. Skipping."
+    return
+  fi
+
   log_info "Installing Atuin..."
 
   if [ "$PKG_MANAGER" == "pacman" ]; then
@@ -71,12 +86,28 @@ install_cargo_tools() {
 
   cargo_pkgs+=(alacritty)
 
-  if [ ${#cargo_pkgs[@]} -gt 0 ]; then
-    cargo install "${cargo_pkgs[@]}"
+  local missing_cargo_pkgs=()
+  local pkg
+
+  for pkg in "${cargo_pkgs[@]}"; do
+    if command -v "$pkg" &>/dev/null; then
+      log_info "$pkg is already installed. Skipping."
+    else
+      missing_cargo_pkgs+=("$pkg")
+    fi
+  done
+
+  if [ ${#missing_cargo_pkgs[@]} -gt 0 ]; then
+    cargo install "${missing_cargo_pkgs[@]}"
   fi
 }
 
 setup_alacritty_extras() {
+  if [ -f /usr/share/pixmaps/Alacritty.svg ] && [ -f /usr/share/applications/Alacritty.desktop ]; then
+    log_info "Alacritty desktop entry already installed. Skipping."
+    return
+  fi
+
   log_info "Setting up Alacritty extras (icon/desktop)..."
 
   local temp_dir="/tmp/alacritty_extras"
@@ -86,7 +117,8 @@ setup_alacritty_extras() {
   fi
 
   if [ -d "$temp_dir/extra" ]; then
-    local current_dir=$(pwd)
+    local current_dir
+    current_dir=$(pwd)
     cd "$temp_dir" || return
 
     if [ -f "extra/logo/alacritty-term.svg" ]; then
