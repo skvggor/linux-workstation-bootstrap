@@ -35,13 +35,20 @@ Click the green "Code" button and select "Download ZIP", or clone it using Git:
 ![Download](/download.gif)
 
    ```bash
-   git clone https://github.com/yourusername/linux-systems-configs.git
-   cd  linux-systems-configs
+   git clone https://github.com/skvggor/linux-workstation-bootstrap.git
+   cd linux-workstation-bootstrap
    ```
 
 2. **Run the installation script**:
    ```bash
    bash install.sh
+   ```
+
+   You can also run specific modules:
+   ```bash
+   bash install.sh --list              # list available modules
+   bash install.sh --only fonts,configs
+   bash install.sh --skip apps
    ```
 
 3. **Follow the prompts** (you will need to enter your sudo password).
@@ -81,7 +88,7 @@ The installation logic is modularized in the `scripts/` directory:
 - **cmatrix**: Matrix-style animation
 
 ### Hyprland (Arch Linux only)
-- **Hyprmon**: System monitor and resource manager for Hyprland (installed automatically when Hyprland is detected)
+- **Hyprmon**: TUI for managing monitor/display layouts in Hyprland (installed automatically when Hyprland is detected)
 
 ### Multimedia & Design
 - **Apps**: OBS Studio, Krita, Inkscape, Gimp, Darktable, VLC, Cheese
@@ -95,6 +102,13 @@ The installation logic is modularized in the `scripts/` directory:
 ### Fonts
 - **Nerd Fonts**: JetBrainsMono, FiraCode, Hack, Meslo, GeistMono, Iosevka
 - **Monaspace**: GitHub's new font family
+
+## Additional Scripts
+
+These scripts are standalone and are not run by `install.sh`:
+
+- `prepare-dropbox-sync.sh`: Replaces the local home folders (Documents, Downloads, Projects, etc.) with symlinks to their Dropbox counterparts, backing up any existing local content, and updates the XDG user directories.
+- `setup-gnome-terminal.sh`: Creates a pre-configured GNOME Terminal profile (font, transparency, cursor, scrollback) and sets it as default.
 
 ## Contributing
 
