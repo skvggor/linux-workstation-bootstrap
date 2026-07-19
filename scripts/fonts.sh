@@ -1,40 +1,29 @@
 #!/bin/bash
 
-install_nerd_fonts() {
-  log_info "Installing Nerd Fonts (Optimized)..."
+NERD_FONTS_VERSION="v3.4.0"
 
+install_nerd_font() {
+  local font="$1"
   local fonts_dir="$HOME/.local/share/fonts"
+  local base_url="https://github.com/ryanoasis/nerd-fonts/releases/download/$NERD_FONTS_VERSION"
+
   mkdir -p "$fonts_dir"
 
-  local fonts=(
-    "JetBrainsMono"
-    "FiraCode"
-    "Hack"
-    "Meslo"
-    "GeistMono"
-    "Iosevka"
-  )
+  if [ -d "$fonts_dir/$font" ]; then
+    log_info "Font $font already installed, skipping."
+    return
+  fi
 
-  local version="v3.4.0"
-  local base_url="https://github.com/ryanoasis/nerd-fonts/releases/download/$version"
+  log_info "Downloading $font Nerd Font..."
+  local zip_file="/tmp/$font.zip"
+  wget -q --show-progress "$base_url/$font.zip" -O "$zip_file"
 
-  for font in "${fonts[@]}"; do
-    if [ -d "$fonts_dir/$font" ]; then
-      log_info "Font $font already installed, skipping."
-      continue
-    fi
-
-    log_info "Downloading $font Nerd Font..."
-    local zip_file="/tmp/$font.zip"
-    wget -q --show-progress "$base_url/$font.zip" -O "$zip_file"
-
-    if [ -f "$zip_file" ]; then
-      unzip -o -q "$zip_file" -d "$fonts_dir/$font"
-      rm "$zip_file"
-    else
-      log_warn "Failed to download $font"
-    fi
-  done
+  if [ -f "$zip_file" ]; then
+    unzip -o -q "$zip_file" -d "$fonts_dir/$font"
+    rm "$zip_file"
+  else
+    log_warn "Failed to download $font"
+  fi
 }
 
 install_monaspace() {
@@ -57,9 +46,7 @@ install_monaspace() {
   fi
 }
 
-run_fonts_setup() {
-  install_nerd_fonts
-  install_monaspace
+refresh_font_cache() {
   log_info "Updating font cache..."
   fc-cache -f
 }

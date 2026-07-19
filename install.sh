@@ -2,64 +2,78 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SCRIPTS_PATH="$SCRIPT_DIR/scripts"
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPTS_PATH="$REPO_DIR/scripts"
 
-if [ -f "$SCRIPTS_PATH/utils.sh" ]; then
-  source "$SCRIPTS_PATH/utils.sh"
-else
-  echo "Error: scripts/utils.sh not found."
-  exit 1
-fi
+for lib in utils catalog tui system configs languages cli_tools apps fonts; do
+  lib_file="$SCRIPTS_PATH/$lib.sh"
 
-available_modules=(system configs languages cli_tools apps fonts)
-only_modules=""
-skip_modules=""
+  if [ -f "$lib_file" ]; then
+    # shellcheck source=/dev/null
+    source "$lib_file"
+  else
+    echo "Error: scripts/$lib.sh not found." >&2
+    exit 1
+  fi
+done
+
+only_selection=""
+skip_selection=""
+install_all=false
 
 usage() {
   cat <<EOF
 Usage: bash install.sh [options]
 
+Without options, an interactive TUI lets you pick what to install.
+
 Options:
-  --only <modules>  Run only the given modules (comma-separated)
-  --skip <modules>  Skip the given modules (comma-separated)
-  --list            List available modules
+  --all             Install everything without prompting
+  --only <list>     Install only the given items/categories (comma-separated)
+  --skip <list>     Install everything except the given items/categories
+  --list            List available items grouped by category
   -h, --help        Show this help
 
-Available modules: ${available_modules[*]}
+Categories: $(catalog_categories | tr '\n' ' ')
 
 Examples:
-  bash install.sh --only fonts,configs
+  bash install.sh --only fonts,dotfiles
+  bash install.sh --only docker,chrome,vscode
   bash install.sh --skip apps
 EOF
 }
 
-validate_modules() {
-  local name
+list_items() {
+  local category id entry
 
-  for name in ${1//,/ }; do
-    if [[ " ${available_modules[*]} " != *" $name "* ]]; then
-      log_error "Unknown module: $name (available: ${available_modules[*]})"
-    fi
+  for category in $(catalog_categories); do
+    echo "[$category]"
+    for id in $(catalog_ids_in_category "$category"); do
+      entry="$(catalog_entry "$id")"
+      printf '  %-20s %s\n' "$id" "$(catalog_field "$entry" 2)"
+    done
+    echo ""
   done
 }
 
 while [ $# -gt 0 ]; do
   case $1 in
+    --all)
+      install_all=true
+      shift
+      ;;
     --only)
-      only_modules="${2:-}"
-      [ -n "$only_modules" ] || log_error "--only requires a comma-separated list of modules."
-      validate_modules "$only_modules"
+      only_selection="${2:-}"
+      [ -n "$only_selection" ] || log_error "--only requires a comma-separated list."
       shift 2
       ;;
     --skip)
-      skip_modules="${2:-}"
-      [ -n "$skip_modules" ] || log_error "--skip requires a comma-separated list of modules."
-      validate_modules "$skip_modules"
+      skip_selection="${2:-}"
+      [ -n "$skip_selection" ] || log_error "--skip requires a comma-separated list."
       shift 2
       ;;
     --list)
-      printf '%s\n' "${available_modules[@]}"
+      list_items
       exit 0
       ;;
     -h | --help)
@@ -73,43 +87,47 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-should_run() {
-  if [ -n "$only_modules" ]; then
-    [[ ",$only_modules," == *",$1,"* ]]
-  else
-    [[ ",$skip_modules," != *",$1,"* ]]
-  fi
-}
-
-selected_modules=()
-for module in "${available_modules[@]}"; do
-  if should_run "$module"; then
-    selected_modules+=("$module")
-  fi
-done
-
-if [ ${#selected_modules[@]} -eq 0 ]; then
-  log_error "No modules selected."
-fi
-
-for module in "${selected_modules[@]}"; do
-  module_file="$SCRIPTS_PATH/$module.sh"
-
-  if [ -f "$module_file" ]; then
-    # shellcheck source=/dev/null
-    source "$module_file"
-  else
-    log_error "Module $module not found in $SCRIPTS_PATH"
-  fi
-done
-
 detect_package_manager
 log_info "Detected package manager: $PKG_MANAGER"
 
+SELECTED_ITEMS=()
+
+if [ -n "$only_selection" ]; then
+  expand_selection "$only_selection" >/dev/null
+  mapfile -t requested < <(expand_selection "$only_selection")
+
+  for id in $(catalog_ids); do
+    if [[ " ${requested[*]} " == *" $id "* ]]; then
+      SELECTED_ITEMS+=("$id")
+    fi
+  done
+elif [ -n "$skip_selection" ]; then
+  expand_selection "$skip_selection" >/dev/null
+  mapfile -t skipped < <(expand_selection "$skip_selection")
+
+  for id in $(catalog_ids); do
+    if [[ " ${skipped[*]} " != *" $id "* ]]; then
+      SELECTED_ITEMS+=("$id")
+    fi
+  done
+elif [ "$install_all" = true ] || [ ! -t 0 ]; then
+  mapfile -t SELECTED_ITEMS < <(catalog_ids)
+else
+  run_tui
+fi
+
+if [ ${#SELECTED_ITEMS[@]} -eq 0 ]; then
+  log_info "Nothing selected. Exiting."
+  exit 0
+fi
+
 needs_package_update=false
-for module in "${selected_modules[@]}"; do
-  case $module in
-    system | languages | cli_tools | apps) needs_package_update=true ;;
+needs_font_cache=false
+
+for id in "${SELECTED_ITEMS[@]}"; do
+  case "$(catalog_field "$(catalog_entry "$id")" 1)" in
+    system | languages | cli | apps) needs_package_update=true ;;
+    fonts) needs_font_cache=true ;;
   esac
 done
 
@@ -117,18 +135,16 @@ if [ "$needs_package_update" = true ]; then
   update_package_lists
 fi
 
-log_info "Starting installation (modules: ${selected_modules[*]})..."
+log_info "Starting installation (${#SELECTED_ITEMS[@]} items: ${SELECTED_ITEMS[*]})..."
 
-for module in "${selected_modules[@]}"; do
-  case $module in
-    system) run_system_setup ;;
-    configs) run_configs_setup "$SCRIPT_DIR" ;;
-    languages) run_language_setup ;;
-    cli_tools) run_cli_tools_setup ;;
-    apps) run_apps_setup ;;
-    fonts) run_fonts_setup ;;
-  esac
+for id in "${SELECTED_ITEMS[@]}"; do
+  read -r -a install_command <<<"$(catalog_field "$(catalog_entry "$id")" 3)"
+  "${install_command[@]}"
 done
+
+if [ "$needs_font_cache" = true ]; then
+  refresh_font_cache
+fi
 
 log_info "Installation completed successfully!"
 log_info "Please restart your shell or computer to apply all changes."

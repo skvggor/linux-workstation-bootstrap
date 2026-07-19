@@ -41,8 +41,25 @@ update_package_lists() {
 }
 
 install_packages() {
-  if [ $# -gt 0 ]; then
-    $INSTALL_CMD "$@"
+  if [ $# -eq 0 ]; then
+    return 0
+  fi
+
+  if $INSTALL_CMD "$@"; then
+    return 0
+  fi
+
+  log_warn "Batch install failed. Retrying packages individually..."
+
+  local pkg
+  local failed=()
+
+  for pkg in "$@"; do
+    $INSTALL_CMD "$pkg" || failed+=("$pkg")
+  done
+
+  if [ ${#failed[@]} -gt 0 ]; then
+    log_warn "Could not install: ${failed[*]}"
   fi
 }
 

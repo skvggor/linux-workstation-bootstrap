@@ -1,7 +1,7 @@
 #!/bin/bash
 
 run_configs_setup() {
-  local config_source_dir="$1"
+  local config_source_dir="${1:-$REPO_DIR}"
 
   if [ -z "$config_source_dir" ]; then
     log_error "Config source directory not provided to run_configs_setup"
