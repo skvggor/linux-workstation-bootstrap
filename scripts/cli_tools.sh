@@ -42,7 +42,7 @@ install_atuin() {
   log_info "Installing Atuin..."
 
   if [ "$PKG_MANAGER" == "pacman" ]; then
-    install_aur_packages atuin
+    install_packages atuin
   else
     curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
   fi
@@ -75,7 +75,7 @@ ensure_cargo_build_deps() {
         fontconfig-devel freetype-devel libxcb-devel libxkbcommon-devel
       ;;
     pacman)
-      install_packages "${pkgs_build_cargo_common[@]}" python freetype2 fontconfig libxcb libxkbcommon
+      install_packages cmake pkgconf python freetype2 fontconfig libxcb libxkbcommon
       ;;
   esac
 

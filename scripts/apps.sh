@@ -2,21 +2,22 @@
 
 install_design_apps() {
   log_info "Installing design and multimedia apps..."
-  local common_design=(cheese darktable gimp inkscape krita obs-studio vlc)
+  local common_design=(darktable gimp inkscape krita obs-studio vlc)
 
   case $PKG_MANAGER in
     apt)
       $ADD_REPO_CMD ppa:obsproject/obs-studio
       update_package_lists
-      install_packages "${common_design[@]}" ttf-mscorefonts-installer
+      install_packages "${common_design[@]}" cheese ttf-mscorefonts-installer
       ;;
     dnf)
-      install_packages "${common_design[@]}"
+      install_packages "${common_design[@]}" cheese
       install_packages cabextract xorg-x11-font-utils fontconfig
       sudo rpm -i https://downloads.sourceforge.net/project/mscorefonts2/rpms/msttcore-fonts-installer-2.6-1.noarch.rpm || log_warn "Failed to install MS Core Fonts RPM."
       ;;
     pacman)
-      install_packages "${common_design[@]}"
+      # Arch dropped cheese after GNOME archived it; snapshot is its replacement.
+      install_packages "${common_design[@]}" snapshot
       install_aur_packages ttf-ms-fonts
       ;;
   esac

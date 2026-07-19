@@ -17,7 +17,7 @@ CATALOG=(
   "zellij|cli|Zellij terminal multiplexer|install_zellij"
   "zoxide|cli|Zoxide: a smarter cd|install_zoxide"
   "alacritty|cli|Alacritty terminal (built with cargo)|install_alacritty"
-  "design-apps|apps|OBS Studio / Krita / Inkscape / Gimp / Darktable / VLC / Cheese|install_design_apps"
+  "design-apps|apps|OBS Studio / Krita / Inkscape / Gimp / Darktable / VLC / Cheese (Snapshot on Arch)|install_design_apps"
   "docker|apps|Docker Engine and Compose|install_docker"
   "dbeaver|apps|DBeaver CE database client|install_dbeaver"
   "insomnia|apps|Insomnia API client|install_insomnia"

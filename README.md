@@ -99,7 +99,7 @@ The installation logic is modularized in the `scripts/` directory:
 - **Hyprmon**: TUI for managing monitor/display layouts in Hyprland (installed automatically when Hyprland is detected)
 
 ### Multimedia & Design
-- **Apps**: OBS Studio, Krita, Inkscape, Gimp, Darktable, VLC, Cheese
+- **Apps**: OBS Studio, Krita, Inkscape, Gimp, Darktable, VLC, Cheese (Snapshot on Arch)
 - **Browsers**: Google Chrome, Microsoft Edge
 
 ### Utilities
