@@ -52,9 +52,3 @@ install_node() {
 
   set -u
 }
-
-run_language_setup() {
-  install_go
-  install_rust
-  install_node
-}

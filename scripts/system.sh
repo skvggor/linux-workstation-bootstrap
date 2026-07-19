@@ -73,10 +73,7 @@ install_hyprland_tools() {
   fi
 }
 
-run_system_setup() {
+run_essentials_setup() {
   setup_directories
   install_essentials
-  install_system_tools
-  install_hyprland_tools
-  setup_shell
 }

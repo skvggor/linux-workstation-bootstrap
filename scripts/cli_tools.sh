@@ -48,19 +48,30 @@ install_atuin() {
   fi
 }
 
-install_cargo_tools() {
-  log_info "Installing Cargo tools..."
+CARGO_BUILD_DEPS_READY=false
+
+ensure_cargo_build_deps() {
+  export PATH="$HOME/.cargo/bin:$PATH"
+
+  if ! command -v cargo &>/dev/null; then
+    install_rust
+  fi
+
+  if [ "$CARGO_BUILD_DEPS_READY" = true ]; then
+    return
+  fi
+
+  log_info "Installing build dependencies for Cargo tools..."
 
   local pkgs_build_cargo_common=(cmake pkg-config)
-  local pkgs_build_cargo_python="python3"
 
   case $PKG_MANAGER in
     apt)
-      install_packages "${pkgs_build_cargo_common[@]}" "$pkgs_build_cargo_python" \
+      install_packages "${pkgs_build_cargo_common[@]}" python3 \
         libfreetype6-dev libfontconfig1-dev libxcb-xfixes0-dev libxkbcommon-dev
       ;;
     dnf)
-      install_packages "${pkgs_build_cargo_common[@]}" "$pkgs_build_cargo_python" \
+      install_packages "${pkgs_build_cargo_common[@]}" python3 \
         fontconfig-devel freetype-devel libxcb-devel libxkbcommon-devel
       ;;
     pacman)
@@ -68,38 +79,66 @@ install_cargo_tools() {
       ;;
   esac
 
-  local cargo_pkgs=(zoxide)
+  CARGO_BUILD_DEPS_READY=true
+}
+
+cargo_install_tool() {
+  local tool="$1"
+
+  if command -v "$tool" &>/dev/null; then
+    log_info "$tool is already installed. Skipping."
+    return
+  fi
+
+  ensure_cargo_build_deps
+  cargo install "$tool"
+}
+
+install_bat() {
+  if command -v bat &>/dev/null; then
+    log_info "Bat is already installed. Skipping."
+    return
+  fi
+
+  log_info "Installing Bat..."
+
+  case $PKG_MANAGER in
+    pacman | dnf) install_packages bat ;;
+    *) cargo_install_tool bat ;;
+  esac
+}
+
+install_zellij() {
+  if command -v zellij &>/dev/null; then
+    log_info "Zellij is already installed. Skipping."
+    return
+  fi
+
+  log_info "Installing Zellij..."
 
   case $PKG_MANAGER in
     pacman)
-      install_packages bat zellij
+      install_packages zellij
       ;;
     dnf)
-      install_packages bat
       sudo dnf copr enable varlad/zellij -y
       install_packages zellij
       ;;
     *)
-      cargo_pkgs+=(bat zellij)
+      cargo_install_tool zellij
       ;;
   esac
+}
 
-  cargo_pkgs+=(alacritty)
+install_zoxide() {
+  log_info "Installing Zoxide..."
+  cargo_install_tool zoxide
+}
 
-  local missing_cargo_pkgs=()
-  local pkg
-
-  for pkg in "${cargo_pkgs[@]}"; do
-    if command -v "$pkg" &>/dev/null; then
-      log_info "$pkg is already installed. Skipping."
-    else
-      missing_cargo_pkgs+=("$pkg")
-    fi
-  done
-
-  if [ ${#missing_cargo_pkgs[@]} -gt 0 ]; then
-    cargo install "${missing_cargo_pkgs[@]}"
-  fi
+install_alacritty() {
+  log_info "Installing Alacritty..."
+  cargo_install_tool alacritty
+  setup_alacritty_extras
 }
 
 setup_alacritty_extras() {
@@ -135,10 +174,3 @@ setup_alacritty_extras() {
   fi
 }
 
-run_cli_tools_setup() {
-  install_starship
-  install_nitch
-  install_atuin
-  install_cargo_tools
-  setup_alacritty_extras
-}

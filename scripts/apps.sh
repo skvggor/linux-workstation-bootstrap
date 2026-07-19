@@ -70,10 +70,9 @@ install_dbeaver() {
   esac
 }
 
-install_browsers() {
-  log_info "Installing Browsers (Edge & Chrome)..."
+install_edge() {
+  log_info "Installing Microsoft Edge..."
 
-  # Edge
   case $PKG_MANAGER in
     apt)
       local edge_deb="/tmp/edge.deb"
@@ -91,8 +90,11 @@ install_browsers() {
       install_aur_packages microsoft-edge-stable-bin
       ;;
   esac
+}
 
-  # Chrome
+install_chrome() {
+  log_info "Installing Google Chrome..."
+
   case $PKG_MANAGER in
     apt)
       local chrome_deb="/tmp/chrome.deb"
@@ -157,12 +159,3 @@ install_insomnia() {
   esac
 }
 
-run_apps_setup() {
-  install_design_apps
-  install_docker
-  install_dbeaver
-  install_insomnia
-  install_browsers
-  install_vscode
-  install_misc_apps
-}

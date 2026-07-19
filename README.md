@@ -23,13 +23,19 @@ This project provides a modular installation script that automatically detects y
 
 - A supported Linux distribution.
 
-## How to Use
+## Quick Start
 
-1. **Download** this repository:
+On a freshly installed machine, run:
 
-Click the green "Code" button and select "Download ZIP", or clone it using Git:
+```bash
+curl -fsSL https://raw.githubusercontent.com/skvggor/linux-workstation-bootstrap/main/bootstrap.sh | bash
+```
 
-![Download](assets/download.gif)
+This clones the repository into `~/.local/share/linux-workstation-bootstrap` and opens an interactive TUI (powered by [gum](https://github.com/charmbracelet/gum), downloaded automatically) where you pick exactly what to install — everything is preselected, press space to toggle items and enter to move on.
+
+## Manual Use
+
+1. **Clone** this repository:
 
    ```bash
    git clone https://github.com/skvggor/linux-workstation-bootstrap.git
@@ -38,13 +44,15 @@ Click the green "Code" button and select "Download ZIP", or clone it using Git:
 
 2. **Run the installation script**:
    ```bash
-   bash install.sh
+   bash install.sh              # interactive TUI
    ```
 
-   You can also run specific modules:
+   Or select items non-interactively:
    ```bash
-   bash install.sh --list              # list available modules
-   bash install.sh --only fonts,configs
+   bash install.sh --list                    # list available items by category
+   bash install.sh --all                     # install everything, no prompts
+   bash install.sh --only fonts,dotfiles     # categories and/or item ids
+   bash install.sh --only docker,chrome,vscode
    bash install.sh --skip apps
    ```
 
@@ -56,7 +64,10 @@ Click the green "Code" button and select "Download ZIP", or clone it using Git:
 
 The installation logic is modularized in the `scripts/` directory:
 
+- `bootstrap.sh`: Remote entry point for `curl | bash` installs.
 - `install.sh`: Main entry point and orchestrator.
+- `scripts/catalog.sh`: Declarative catalog of every installable item (single source of truth for the TUI and `--list`).
+- `scripts/tui.sh`: Interactive selection UI (gum-based, with a plain-prompt fallback).
 - `scripts/system.sh`: Base system packages and directories.
 - `scripts/languages.sh`: Programming language environments (Go, Rust, Node/NVM).
 - `scripts/cli_tools.sh`: Terminal utilities and shell prompts.
